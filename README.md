@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Docker Bench for Security
 
 ![Docker Bench for Security running](img/benchmark_log.png)
@@ -150,3 +151,7 @@ The CIS based checks are named `check_<section>_<number>`, e.g. `check_2_6` and 
 `sh docker-bench-security.sh -c container_images -e check_4_5` will run just the container_images checks except `4.5 Ensure Content trust for Docker is Enabled`
 
 Note that when submitting checks, provide information why it is a reasonable test to add and please include some kind of official documentation verifying that information.
+=======
+# DevOps-Docker-Bench-Security
+Implementación DevOps basada en Docker-Bench-Security: Integración de seguridad y monitoreo con Docker, Jenkins, Prometheus y Grafana
+>>>>>>> e2904b4155f3e8e3c5b481e36837fe61f08d0a6e
