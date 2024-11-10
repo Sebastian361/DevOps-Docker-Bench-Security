@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Docker Bench for Security
 
 ![Docker Bench for Security running](img/benchmark_log.png)
