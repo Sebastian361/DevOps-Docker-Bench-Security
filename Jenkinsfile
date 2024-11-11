@@ -30,12 +30,16 @@ pipeline {
                         -v /var/lib:/var/lib:ro \
                         -v /var/run/docker.sock:/var/run/docker.sock:ro \
                         --label docker_bench_security \
-                        ${DOCKER_IMAGE}
+                        ${DOCKER_IMAGE} > resultados-seguridad-docker.txt
+
+                        # Generar el archivo HTML con los resultados
+                        echo "<html><head><title>Reporte de Seguridad Docker</title></head><body><pre>" > resultados-seguridad-docker.html
+                        cat resultados-seguridad-docker.txt >> resultados-seguridad-docker.html
+                        echo "</pre></body></html>" >> resultados-seguridad-docker.html
                     '''
                 }
             }
         }
-        // Esta es la etapa que exporta las métricas a Prometheus
         stage('Export Metrics') {
             steps {
                 script {
@@ -47,8 +51,8 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts artifacts: '**/resultados-seguridad-docker.txt', allowEmptyArchive: true
-            echo 'Pipeline completo, revisa los resultados'
+            archiveArtifacts artifacts: '**/resultados-seguridad-docker.html', allowEmptyArchive: true
+            echo 'Pipeline completo, revisa los resultados en HTML'
         }
     }
 }
