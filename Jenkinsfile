@@ -20,7 +20,6 @@ pipeline {
         stage('Run Security Checks') {
             steps {
                 script {
-                    // Ejecutar el script de docker-bench-security
                     sh '''
                         docker run --rm --net host --pid host --userns host --cap-add audit_control \
                         -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
@@ -34,24 +33,17 @@ pipeline {
                         --label docker_bench_security \
                         ${DOCKER_IMAGE} > resultados-seguridad-docker.txt
 
-                        # Generar el archivo HTML con los resultados
                         echo "<html><head><title>Reporte de Seguridad Docker</title></head><body><pre>" > resultados-seguridad-docker.html
                         cat resultados-seguridad-docker.txt >> resultados-seguridad-docker.html
                         echo "</pre></body></html>" >> resultados-seguridad-docker.html
                     '''
-                    // Leer el archivo de texto y eliminar caracteres ANSI
-                    def result = readFile('resultados-seguridad-docker.txt')
                     
-                    // Eliminar caracteres ANSI (colores y formateo) con una expresión regular
+                    def result = readFile('resultados-seguridad-docker.txt')
                     def cleanResult = result.replaceAll(/\x1b\[[0-9;]*m/, '')
-
-                    // Buscar la línea que contiene "Score:"
                     def scoreLine = cleanResult.readLines().find { it.contains("Score:") }
                     def score = scoreLine?.split(":")?.last()?.trim()?.toInteger()
-
                     echo "Docker Bench Security Score: ${score}"
-
-                    // Validar si el puntaje es mayor o igual a 1
+                    
                     if (score >= 1) {
                         echo "El puntaje es adecuado. Procediendo con el despliegue del contenedor."
                     } else {
@@ -76,19 +68,17 @@ pipeline {
         }
         stage('Deploy Nginx') {
             when {
-                expression { return score >= 1 } // Solo despliega si el puntaje es adecuado
+                expression { return score >= 1 }
             }
             steps {
                 script {
                     try {
-                        echo "Verificando y eliminando cualquier contenedor existente de Nginx..."
+                        echo "Verificando si existe un contenedor anterior de Nginx..."
                         sh '''
-                            if [ "$(docker ps -aq -f name=nginx-container)" ]; then
-                                docker rm -f nginx-container
-                            fi
+                            docker ps -a -q --filter name=nginx-container | xargs -r docker rm -f
                         '''
                         
-                        echo "Desplegando la imagen de Docker Nginx..."
+                        echo "Desplegando un nuevo contenedor de Nginx..."
                         def containerId = sh(script: 'docker run -d --privileged --name nginx-container -p 80:80 nginx', returnStdout: true).trim()
                         echo "Contenedor Nginx desplegado con ID: ${containerId}"
                     } catch (e) {
