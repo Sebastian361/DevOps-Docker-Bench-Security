@@ -82,9 +82,9 @@ pipeline {
             steps {
                 script {
                     try {
-                        echo "Desplegando la imagen de Docker Nginx..."
-                        // Ejecutar el contenedor de Nginx
-                        def containerId = sh(script: 'docker run -d --name nginx-container -p 80:80 ${NGINX_IMAGE}', returnStdout: true).trim()
+                        echo "Desplegando la imagen de Docker Nginx con privilegios..."
+                        // Ejecutar el contenedor de Nginx con privilegios
+                        def containerId = sh(script: 'docker run -d --privileged --name nginx-container -p 80:80 ${NGINX_IMAGE}', returnStdout: true).trim()
                         echo "Contenedor Nginx desplegado con ID: ${containerId}"
                     } catch (e) {
                         echo "Error al desplegar el contenedor Nginx: ${e}"
