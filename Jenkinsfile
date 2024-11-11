@@ -66,18 +66,29 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Desplegando la imagen de Docker Nginx..."
-                    // Ejecutar el contenedor de Nginx
-                    sh 'docker run -d --name nginx-container -p 80:80 nginx'
-                    echo "Nginx ha sido desplegado."
+                    try {
+                        echo "Desplegando la imagen de Docker Nginx..."
+                        // Ejecutar el contenedor de Nginx
+                        sh 'docker run -d --name nginx-container -p 80:80 nginx'
+                        echo "Nginx ha sido desplegado."
+                    } catch (e) {
+                        echo "Error al desplegar el contenedor Nginx: ${e}"
+                        currentBuild.result = 'FAILURE' // Marca el build como fallido
+                    }
                 }
             }
         }
         stage('Export Metrics') {
             steps {
                 script {
-                    // Enviar métricas a Prometheus usando curl
-                    sh 'curl -X POST http://localhost:9091/metrics/job/jenkins_pipeline'
+                    try {
+                        echo "Enviando métricas a Prometheus..."
+                        // Enviar métricas a Prometheus usando curl
+                        sh 'curl -X POST http://localhost:9091/metrics/job/jenkins_pipeline'
+                    } catch (e) {
+                        echo "Error al exportar métricas a Prometheus: ${e}"
+                        currentBuild.result = 'FAILURE' // Marca el build como fallido
+                    }
                 }
             }
         }
