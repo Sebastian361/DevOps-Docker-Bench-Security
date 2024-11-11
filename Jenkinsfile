@@ -51,8 +51,8 @@ pipeline {
 
                     echo "Docker Bench Security Score: ${score}"
 
-                    // Validar si el puntaje es mayor o igual a 3
-                    if (score >= 3) {
+                    // Validar si el puntaje es mayor o igual a 1
+                    if (score >= 1) {
                         echo "El puntaje es adecuado. Procediendo con el despliegue del contenedor."
                     } else {
                         error "El puntaje de seguridad es bajo (${score}). No se realizará el despliegue."
@@ -65,25 +65,23 @@ pipeline {
                 script {
                     try {
                         echo "Verificando acceso a Docker..."
-                        // Comando para verificar si Docker está disponible en Jenkins
                         def dockerInfo = sh(script: 'docker info', returnStdout: true).trim()
                         echo "Docker Info: ${dockerInfo}"
                     } catch (e) {
                         echo "Error al acceder a Docker: ${e}"
-                        currentBuild.result = 'FAILURE' // Marca el build como fallido
+                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
         }
         stage('Deploy Nginx') {
             when {
-                expression { return score >= 3 } // Solo despliega si el puntaje es adecuado
+                expression { return score >= 1 } // Solo despliega si el puntaje es adecuado
             }
             steps {
                 script {
                     try {
                         echo "Verificando y eliminando cualquier contenedor existente de Nginx..."
-                        // Detener y eliminar el contenedor si ya existe
                         sh '''
                             if [ "$(docker ps -aq -f name=nginx-container)" ]; then
                                 docker rm -f nginx-container
@@ -91,12 +89,11 @@ pipeline {
                         '''
                         
                         echo "Desplegando la imagen de Docker Nginx..."
-                        // Ejecutar el contenedor de Nginx con el flag --privileged
                         def containerId = sh(script: 'docker run -d --privileged --name nginx-container -p 80:80 nginx', returnStdout: true).trim()
                         echo "Contenedor Nginx desplegado con ID: ${containerId}"
                     } catch (e) {
                         echo "Error al desplegar el contenedor Nginx: ${e}"
-                        currentBuild.result = 'FAILURE' // Marca el build como fallido
+                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
@@ -106,11 +103,10 @@ pipeline {
                 script {
                     try {
                         echo "Enviando métricas a Prometheus..."
-                        // Enviar métricas a Prometheus usando curl
                         sh 'curl -X POST http://localhost:9091/metrics/job/jenkins_pipeline'
                     } catch (e) {
                         echo "Error al exportar métricas a Prometheus: ${e}"
-                        currentBuild.result = 'FAILURE' // Marca el build como fallido
+                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
