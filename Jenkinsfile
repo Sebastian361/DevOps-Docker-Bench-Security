@@ -60,6 +60,21 @@ pipeline {
                 }
             }
         }
+        stage('Verify Docker Access') {
+            steps {
+                script {
+                    try {
+                        echo "Verificando acceso a Docker..."
+                        // Comando para verificar si Docker está disponible en Jenkins
+                        def dockerInfo = sh(script: 'docker info', returnStdout: true).trim()
+                        echo "Docker Info: ${dockerInfo}"
+                    } catch (e) {
+                        echo "Error al acceder a Docker: ${e}"
+                        currentBuild.result = 'FAILURE' // Marca el build como fallido
+                    }
+                }
+            }
+        }
         stage('Deploy Nginx') {
             when {
                 expression { return score >= 3 } // Solo despliega si el puntaje es adecuado
@@ -69,8 +84,8 @@ pipeline {
                     try {
                         echo "Desplegando la imagen de Docker Nginx..."
                         // Ejecutar el contenedor de Nginx
-                        sh 'docker run -d --name nginx-container -p 80:80 nginx'
-                        echo "Nginx ha sido desplegado."
+                        def containerId = sh(script: 'docker run -d --name nginx-container -p 80:80 nginx', returnStdout: true).trim()
+                        echo "Contenedor Nginx desplegado con ID: ${containerId}"
                     } catch (e) {
                         echo "Error al desplegar el contenedor Nginx: ${e}"
                         currentBuild.result = 'FAILURE' // Marca el build como fallido
