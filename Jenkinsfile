@@ -19,15 +19,20 @@ pipeline {
         stage('Run Security Checks') {
             steps {
                 script {
-                    sh 'docker run --rm --net host --pid host --cap-add audit_control -v /etc:/etc:ro -v /usr/bin/docker:/usr/bin/docker:ro -v /var/lib:/var/lib:ro -v /var/run/docker.sock:/var/run/docker.sock:ro ${DOCKER_IMAGE}'
+                    sh '''
+                    docker run --rm --net host --pid host --userns host --cap-add audit_control \
+                    -v /etc:/etc:ro \
+                    -v /usr/bin/docker:/usr/bin/docker:ro \
+                    -v /var/lib:/var/lib:ro \
+                    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+                    ${DOCKER_IMAGE}
+                    '''
                 }
             }
         }
-        // Esta es la etapa que exporta las métricas a Prometheus
         stage('Export Metrics') {
             steps {
                 script {
-                    // Enviar métricas a Prometheus usando curl
                     sh 'curl -X POST http://localhost:9091/metrics/job/jenkins_pipeline'
                 }
             }
