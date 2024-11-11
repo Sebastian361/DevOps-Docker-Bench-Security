@@ -75,7 +75,9 @@ pipeline {
                     try {
                         echo "Verificando si existe un contenedor anterior de Nginx..."
                         sh '''
-                            docker ps -a -q --filter name=nginx-container | xargs -r docker rm -f
+                            if [ "$(docker ps -aq -f name=nginx-container)" ]; then
+                                docker rm -f nginx-container
+                            fi
                         '''
                         
                         echo "Desplegando un nuevo contenedor de Nginx..."
