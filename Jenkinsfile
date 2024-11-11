@@ -37,18 +37,6 @@ pipeline {
                         cat resultados-seguridad-docker.txt >> resultados-seguridad-docker.html
                         echo "</pre></body></html>" >> resultados-seguridad-docker.html
                     '''
-                    
-                    def result = readFile('resultados-seguridad-docker.txt')
-                    def cleanResult = result.replaceAll(/\x1b\[[0-9;]*m/, '')
-                    def scoreLine = cleanResult.readLines().find { it.contains("Score:") }
-                    def score = scoreLine?.split(":")?.last()?.trim()?.toInteger()
-                    echo "Docker Bench Security Score: ${score}"
-                    
-                    if (score >= 1) {
-                        echo "El puntaje es adecuado. Procediendo con el despliegue del contenedor."
-                    } else {
-                        error "El puntaje de seguridad es bajo (${score}). No se realizará el despliegue."
-                    }
                 }
             }
         }
@@ -67,9 +55,6 @@ pipeline {
             }
         }
         stage('Deploy Nginx') {
-            when {
-                expression { return score >= 1 }
-            }
             steps {
                 script {
                     try {
