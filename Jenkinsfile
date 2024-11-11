@@ -39,9 +39,16 @@ pipeline {
                         cat resultados-seguridad-docker.txt >> resultados-seguridad-docker.html
                         echo "</pre></body></html>" >> resultados-seguridad-docker.html
                     '''
-                    // Leer el puntaje desde el archivo de resultados
+                    // Leer el archivo de texto y eliminar caracteres ANSI
                     def result = readFile('resultados-seguridad-docker.txt')
-                    def score = result.find(/Total score: (\d+)/) { match, number -> number.toInteger() }
+                    
+                    // Eliminar caracteres ANSI (colores y formateo) con una expresión regular
+                    def cleanResult = result.replaceAll(/\x1b\[[0-9;]*m/, '')
+
+                    // Buscar la línea que contiene "Score:"
+                    def scoreLine = cleanResult.readLines().find { it.contains("Score:") }
+                    def score = scoreLine?.split(":")?.last()?.trim()?.toInteger()
+
                     echo "Docker Bench Security Score: ${score}"
 
                     // Validar si el puntaje es mayor o igual a 3
